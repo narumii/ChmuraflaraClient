@@ -1,5 +1,7 @@
 package lolicon.store.cfc;
 
+import java.security.Security;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.Consumer;
 import lolicon.store.cfc.interceptor.HeadersInterceptor;
@@ -7,12 +9,17 @@ import lolicon.store.cfc.interceptor.UnzippingInterceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
 import okhttp3.Protocol;
+import org.conscrypt.Conscrypt;
 
 public class ChmuraflaraClient implements Constants {
 
+  static {
+    Security.insertProviderAt(Conscrypt.newProvider(), 1);
+  }
+
   public static OkHttpClient.Builder apply(OkHttpClient.Builder builder) {
     return builder
-        .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+        .protocols(Arrays.asList(Protocol.HTTP_2, Protocol.HTTP_1_1))
         .connectionSpecs(Collections.singletonList(CONNECTION_SPEC))
         .addInterceptor(new HeadersInterceptor())
         .addInterceptor(new UnzippingInterceptor());
@@ -23,10 +30,7 @@ public class ChmuraflaraClient implements Constants {
   }
 
   public static OkHttpClient.Builder newBuilder() {
-    return new Builder().protocols(Collections.singletonList(Protocol.HTTP_1_1))
-        .connectionSpecs(Collections.singletonList(CONNECTION_SPEC))
-        .addInterceptor(new HeadersInterceptor())
-        .addInterceptor(new UnzippingInterceptor());
+    return apply(new Builder());
   }
 
   public OkHttpClient create(Consumer<OkHttpClient.Builder> builderConsumer) {
